@@ -1,0 +1,386 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+/* ─── Reset ─────────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Design tokens ──────────────────────────────────────────────────────────── */
+:root {
+  --bg-start:    #38d3c8;
+  --bg-end:      #4cc9b0;
+  --panel-bg:    rgba(255, 255, 255, 0.18);
+  --panel-blur:  blur(14px);
+  --text-white:  #ffffff;
+  --text-dim:    rgba(255, 255, 255, 0.75);
+  --text-lo:     rgba(255, 255, 255, 0.5);
+  --rain-blue:   #7EC8F8;
+  --font-main:   'DM Sans', sans-serif;
+  --font-mono:   'DM Mono', monospace;
+  --radius-lg:   18px;
+  --radius-sm:   14px;
+}
+
+/* ─── Full-screen page shell ── */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+  font-family: var(--font-main);
+}
+
+.ww-root {
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* ─── Shared card shell ── */
+.ww-card {
+  background: linear-gradient(160deg, #44ddd1 0%, #2eb8a3 100%);
+  overflow: hidden;
+  width: 100%;
+}
+
+/* ─── Responsive visibility ── */
+.ww-mobile  { display: block; }
+.ww-desktop { display: none;  }
+
+@media (min-width: 640px) {
+  .ww-mobile  { display: none; }
+
+  /* Fixed overlay — covers the entire screen, no gaps ever */
+  .ww-desktop {
+    display: block;
+    position: fixed;
+    inset: 0;                      /* top:0 right:0 bottom:0 left:0 */
+    border-radius: 0;
+    overflow-y: auto;
+  }
+}
+
+/* ════════════════════════════════ MOBILE ════════════════════════════════════ */
+
+.m-root {
+  /* Stretch the inner content to full card height on mobile */
+  min-height: 100dvh;
+  padding: 32px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Hero */
+.m-hero {
+  text-align: center;
+  padding-bottom: 4px;
+}
+
+.m-city {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-white);
+  letter-spacing: 0.02em;
+  margin-bottom: 4px;
+}
+
+.m-temp-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* Large temperature — uses ° without "C" so it never wraps on narrow screens */
+.m-temp {
+  font-size: 64px;
+  font-weight: 300;
+  color: var(--text-white);
+  letter-spacing: -3px;
+  line-height: 1;
+  white-space: nowrap;             /* prevent wrapping */
+}
+
+.m-sun-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.m-condition {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-top: 6px;
+}
+
+.m-range {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── Forecast panel (mobile) ── */
+.m-forecast-panel {
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  -webkit-backdrop-filter: var(--panel-blur);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;                         /* grows to fill remaining vertical space */
+}
+
+/* ── Forecast row (mobile) ──────────────────────────────────────────────────
+   Layout: [label] [rain-cell] [day-icon] [night-icon] [hi] [lo]
+   Uses auto columns so temperatures always have enough room.              */
+.fr-row {
+  display: grid;
+  grid-template-columns:
+    minmax(64px, 1fr)  /* label  */
+    minmax(44px, auto) /* rain   */
+    22px               /* day icon */
+    22px               /* night icon */
+    minmax(28px, auto) /* hi °  */
+    minmax(28px, auto) /* lo °  */;
+  align-items: center;
+  column-gap: 6px;
+  padding: 5px 0;
+}
+
+.fr-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-white);
+  white-space: nowrap;
+}
+
+/* Rain cell holds dot + percentage; always takes a fixed slot */
+.fr-rain-cell {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.fr-rain-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rain-blue);
+  flex-shrink: 0;
+}
+
+.fr-rain {
+  font-size: 10px;
+  color: var(--rain-blue);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.fr-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.fr-hi {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-white);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.fr-lo {
+  font-size: 12px;
+  color: var(--text-lo);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ── Stats grid 2×2 (mobile) ── */
+.m-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* ════════════════════════════════ DESKTOP ═══════════════════════════════════ */
+
+.d-root {
+  width: 100%;
+  min-height: 100vh;
+  padding: clamp(24px, 4vw, 56px) clamp(24px, 5vw, 80px) clamp(20px, 3vw, 48px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 28px);
+}
+
+/* Top bar */
+.d-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.d-city {
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 500;
+  color: var(--text-white);
+  letter-spacing: -0.5px;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.d-cond-block {
+  text-align: center;
+  flex: 1;
+}
+
+.d-condition {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+
+.d-range {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.d-temp-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Desktop temperature — fluid size between 640px and 1600px viewport */
+.d-temp {
+  font-size: clamp(40px, 5vw, 72px);
+  font-weight: 300;
+  color: var(--text-white);
+  letter-spacing: -2px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.d-sun-icon {
+  width: clamp(44px, 4vw, 72px);
+  height: clamp(44px, 4vw, 72px);
+}
+
+/* ── Forecast columns (desktop) ── */
+.d-forecast-panel {
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  -webkit-backdrop-filter: var(--panel-blur);
+  border-radius: var(--radius-lg);
+  padding: clamp(12px, 2vw, 24px) clamp(16px, 3vw, 40px);
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(4px, 1vw, 16px);
+}
+
+.fc-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;                         /* each column stretches equally */
+  min-width: 0;                    /* allow shrinking below content size */
+}
+
+.fc-label {
+  font-size: clamp(11px, 1.2vw, 15px);
+  font-weight: 500;
+  color: var(--text-white);
+  white-space: nowrap;
+}
+
+/* Rain row always reserves height so columns stay vertically aligned */
+.fc-rain-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+
+.fc-icons {
+  display: flex;
+  gap: 2px;
+}
+
+.fc-temps {
+  display: flex;
+  gap: 4px;
+}
+
+/* ── Stats row 1×4 (desktop) ── */
+.d-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* ════════════════════════════════ STAT CARD (shared) ════════════════════════ */
+.stat-card {
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  -webkit-backdrop-filter: var(--panel-blur);
+  border-radius: var(--radius-sm);
+  aspect-ratio: 1 / 1;
+  padding: clamp(12px, 2vw, 24px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;         /* vertical centre */
+  align-items: center;             /* horizontal centre */
+  text-align: center;
+  gap: 4cqw;
+  container-type: size;
+}
+
+.stat-label {
+  font-size: 10cqw;                /* scales with card width */
+  color: var(--text-dim);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.stat-value-row {
+  display: flex;
+  align-items: center;
+  gap: 6cqw;
+}
+
+.stat-value {
+  font-size: 28cqw;
+  font-weight: 500;
+  color: var(--text-white);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.stat-sub {
+  font-size: 10cqw;
+  color: var(--text-dim);
+  line-height: 1;
+}
+
+.stat-droplet {
+  width: 18cqw;
+  height: 18cqw;
+}
