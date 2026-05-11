@@ -26,5 +26,3 @@ dist-ssr
 
 # Sensitive information
 .env
-
-/src/App.jsx
