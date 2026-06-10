@@ -8,7 +8,7 @@ A responsive weather app built with React and Vite. Displays current conditions,
 
 - **React 18** + **Vite**
 - **OpenWeatherMap API** — current weather, forecast, UV index
-- **Custom REST API** — authentication and favorite cities (see [meteocast-api](https://github.com/your-username/meteocast-api))
+- **Custom REST API** — authentication and favorite cities (see [meteocast-api](https://github.com/Zeddit323/MeteoCast_API))
 
 ---
 
