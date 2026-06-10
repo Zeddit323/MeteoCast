@@ -1,13 +1,13 @@
 import './App.css'
-import WeatherWidget from './WeatherWidget'
+import { AuthProvider } from './AuthContext';
+import WeatherWidget from './WeatherWidget';
 
 function App() {
-
   return (
-    <>
-    <WeatherWidget></WeatherWidget>
-    </>
-  )
+    <AuthProvider>
+      <WeatherWidget />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
