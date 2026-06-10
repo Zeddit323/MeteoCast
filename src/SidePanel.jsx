@@ -51,14 +51,13 @@ function translateError(message) {
 // ── Detect reset token in URL ─────────────────────────────────────────────────
 // Matches: /auth/reset-password/<hex-token>
 function getResetTokenFromUrl() {
-  const match = window.location.pathname.match(/\/auth\/reset-password\/([a-f0-9]+)/i);
-  return match ? match[1] : null;
+  const params = new URLSearchParams(window.location.search);
+  return params.get('resetToken');
 }
 
 function clearResetTokenFromUrl() {
   window.history.replaceState({}, "", "/");
 }
-
 // ── Shared field ──────────────────────────────────────────────────────────────
 function Field({ type = "text", placeholder, value, onChange, autoComplete, onKeyDown }) {
   return (
