@@ -1,57 +1,110 @@
 import "./weather.css";
+import { useState }         from "react";
 import { buildIconMap }     from "./icons";
 import { DEFAULT_FORECAST } from "./data";
 import MobileLayout         from "./MobileLayout";
 import DesktopLayout        from "./DesktopLayout";
+import { useWeather }       from "./useWeather";
+import { useAuth }          from "./AuthContext";
+import CitySearch           from "./CitySearch";
+import SidePanel            from "./SidePanel";
 
-/**
- * WeatherWidget
- * ─────────────────────────────────────────────────────────────────────────────
- * Props:
- *   city           {string}  – Nazwa miasta
- *   temp           {number}  – Aktualna temperatura °C
- *   condition      {string}  – Opis warunków (np. "Słonecznie")
- *   tempRange      {string}  – Zakres dobowy (np. "5° – 11°")
- *   humidity       {string}  – Wilgotność (np. "6%")
- *   uv             {number}  – Indeks UV
- *   uvLabel        {string}  – Opis UV (np. "Niski")
- *   feelsLike      {number}  – Temperatura odczuwalna °C
- *   pressure       {number}  – Ciśnienie hPa
- *   forecast       {Array}   – Tablica dni prognozy (patrz data.js)
- *   currentIconKey {string}  – Klucz ikony aktualnych warunków (patrz icons.jsx)
- *   icons          {Object}  – Opcjonalne nadpisanie ikon
- */
-export default function WeatherWidget({
-  city           = "Katowice",
-  temp           = 11,
-  condition      = "Słonecznie",
-  tempRange      = "Od 5° do 11°",
-  humidity       = "6%",
-  uv             = 2,
-  uvLabel        = "Niski",
-  feelsLike      = 15,
-  pressure       = 1016,
-  forecast       = DEFAULT_FORECAST,
-  currentIconKey = "sunny",
-  icons          = {},
-}) {
+function Overlay({ children }) {
+  return (
+    <div style={{
+      width: "100%", minHeight: "100dvh",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "linear-gradient(135deg, #38d3c8 0%, #4cc9b0 100%)",
+    }}>
+      <p style={{ color: "#fff", fontFamily: "DM Sans, sans-serif", fontSize: 16, textAlign: "center", padding: "0 24px" }}>
+        {children}
+      </p>
+    </div>
+  );
+}
+
+export default function WeatherWidget({ icons = {} }) {
+  // Always store coordinates — never rely on geocoding a name.
+  // Default is Katowice city centre; updated whenever a city is selected.
+  const [city, setCity]     = useState("Katowice");
+  const [coords, setCoords] = useState({ lat: 50.2598, lon: 19.0216 });
+  const [panelOpen, setPanelOpen] = useState(false);
+
+  const { data, loading, error } = useWeather({ lat: coords.lat, lon: coords.lon, city });
+
   const Icon = buildIconMap(icons);
 
+  function handleCitySelect({ name, lat, lon }) {
+    setCity(name);
+    // Coordinates from favorites are stored as strings in Postgres — coerce to number
+    setCoords({ lat: parseFloat(lat), lon: parseFloat(lon) });
+  }
+
+  // Search bar rendered above both layouts
+  const searchBar = (
+    <div className="ww-topbar">
+      <button
+        className="ww-hamburger"
+        onClick={() => setPanelOpen(true)}
+        aria-label="Menu"
+      >
+        <span /><span /><span />
+      </button>
+      <CitySearch
+        onCitySelect={handleCitySelect}
+        currentCity={data?.city ?? city}
+        currentLat={data ? parseFloat(coords.lat ?? 0) : null}
+        currentLon={data ? parseFloat(coords.lon ?? 0) : null}
+      />
+    </div>
+  );
+
+  if (loading) return <Overlay>Pobieranie pogody dla {city}…</Overlay>;
+
+  if (error) return (
+    <Overlay>
+      ⚠️ {error}
+      <br /><br />
+      <small style={{ opacity: 0.75 }}>
+        Sprawdź klucz API w pliku <code>.env</code>
+        <br />(VITE_OPENWEATHER_API_KEY=twój_klucz)
+      </small>
+    </Overlay>
+  );
+
   const sharedProps = {
-    city, temp, condition, tempRange,
-    humidity, uv, uvLabel, feelsLike, pressure,
-    forecast, Icon, currentIconKey,
+    city:           data?.city           ?? city,
+    temp:           data?.temp           ?? "—",
+    condition:      data?.condition      ?? "—",
+    tempRange:      data?.tempRange      ?? "—",
+    humidity:       data?.humidity       ?? "—",
+    uv:             data?.uv             ?? "—",
+    uvLabel:        data?.uvLabel        ?? "—",
+    feelsLike:      data?.feelsLike      ?? "—",
+    pressure:       data?.pressure       ?? "—",
+    forecast:       data?.forecast       ?? DEFAULT_FORECAST,
+    currentIconKey: data?.currentIconKey ?? "sunny",
+    Icon,
   };
 
   return (
     <div className="ww-root">
-      {/* Mobile (< 640px) */}
+      <SidePanel
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        onCitySelect={handleCitySelect}
+        forceOpen={() => setPanelOpen(true)}
+      />
+
+      {/* Mobile */}
       <div className="ww-mobile ww-card">
+        {searchBar}
         <MobileLayout {...sharedProps} />
       </div>
 
-      {/* Desktop (≥ 640px) */}
+      {/* Desktop */}
       <div className="ww-desktop ww-card">
+        {searchBar}
         <DesktopLayout {...sharedProps} />
       </div>
     </div>

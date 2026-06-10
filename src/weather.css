@@ -55,11 +55,10 @@ body {
 @media (min-width: 640px) {
   .ww-mobile  { display: none; }
 
-  /* Fixed overlay — covers the entire screen, no gaps ever */
   .ww-desktop {
     display: block;
     position: fixed;
-    inset: 0;                      /* top:0 right:0 bottom:0 left:0 */
+    inset: 0;
     border-radius: 0;
     overflow-y: auto;
   }
@@ -68,22 +67,22 @@ body {
 /* ════════════════════════════════ MOBILE ════════════════════════════════════ */
 
 .m-root {
-  /* Stretch the inner content to full card height on mobile */
   min-height: 100dvh;
-  padding: 32px 20px 24px;
+  padding: 28px 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 /* Hero */
 .m-hero {
   text-align: center;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
+  flex-shrink: 0;
 }
 
 .m-city {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--text-white);
   letter-spacing: 0.02em;
@@ -94,33 +93,32 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-/* Large temperature — uses ° without "C" so it never wraps on narrow screens */
 .m-temp {
-  font-size: 64px;
+  font-size: clamp(48px, 15vw, 64px);
   font-weight: 300;
   color: var(--text-white);
   letter-spacing: -3px;
   line-height: 1;
-  white-space: nowrap;             /* prevent wrapping */
+  white-space: nowrap;
 }
 
 .m-sun-icon {
-  width: 48px;
-  height: 48px;
+  width: clamp(36px, 11vw, 48px);
+  height: clamp(36px, 11vw, 48px);
   flex-shrink: 0;
 }
 
 .m-condition {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-dim);
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .m-range {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-dim);
   margin-top: 2px;
 }
@@ -131,28 +129,32 @@ body {
   backdrop-filter: var(--panel-blur);
   -webkit-backdrop-filter: var(--panel-blur);
   border-radius: var(--radius-lg);
-  padding: 10px 14px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;                         /* grows to fill remaining vertical space */
+  gap: 0;
+  flex-shrink: 0;  /* do NOT stretch — let content determine height */
 }
 
 /* ── Forecast row (mobile) ──────────────────────────────────────────────────
-   Layout: [label] [rain-cell] [day-icon] [night-icon] [hi] [lo]
-   Uses auto columns so temperatures always have enough room.              */
+   Layout: [label] [rain-cell] [day-icon] [night-icon] [hi] [lo]             */
 .fr-row {
   display: grid;
   grid-template-columns:
-    minmax(64px, 1fr)  /* label  */
-    minmax(44px, auto) /* rain   */
-    22px               /* day icon */
-    22px               /* night icon */
-    minmax(28px, auto) /* hi °  */
-    minmax(28px, auto) /* lo °  */;
+    minmax(52px, 1fr)   /* label  */
+    minmax(36px, auto)  /* rain   */
+    20px                /* day icon */
+    20px                /* night icon */
+    minmax(26px, auto)  /* hi °  */
+    minmax(26px, auto)  /* lo °  */;
   align-items: center;
-  column-gap: 6px;
+  column-gap: 5px;
   padding: 5px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.fr-row:last-child {
+  border-bottom: none;
 }
 
 .fr-label {
@@ -162,7 +164,6 @@ body {
   white-space: nowrap;
 }
 
-/* Rain cell holds dot + percentage; always takes a fixed slot */
 .fr-rain-cell {
   display: flex;
   align-items: center;
@@ -171,8 +172,8 @@ body {
 }
 
 .fr-rain-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--rain-blue);
   flex-shrink: 0;
@@ -186,8 +187,8 @@ body {
 }
 
 .fr-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 }
 
@@ -210,7 +211,8 @@ body {
 .m-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* ════════════════════════════════ DESKTOP ═══════════════════════════════════ */
@@ -218,14 +220,13 @@ body {
 .d-root {
   width: 100%;
   min-height: 100vh;
-  padding: clamp(24px, 4vw, 56px) clamp(24px, 5vw, 80px) clamp(20px, 3vw, 48px);
+  padding: 0 clamp(24px, 5vw, 80px) 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(14px, 2vw, 28px);
+  gap: clamp(8px, 1.2vw, 18px);
 }
 
-/* Top bar */
 .d-topbar {
   display: flex;
   align-items: center;
@@ -266,7 +267,6 @@ body {
   justify-content: flex-end;
 }
 
-/* Desktop temperature — fluid size between 640px and 1600px viewport */
 .d-temp {
   font-size: clamp(40px, 5vw, 72px);
   font-weight: 300;
@@ -287,7 +287,7 @@ body {
   backdrop-filter: var(--panel-blur);
   -webkit-backdrop-filter: var(--panel-blur);
   border-radius: var(--radius-lg);
-  padding: clamp(12px, 2vw, 24px) clamp(16px, 3vw, 40px);
+  padding: clamp(8px, 1.2vw, 16px) clamp(16px, 3vw, 40px);
   display: flex;
   justify-content: space-between;
   gap: clamp(4px, 1vw, 16px);
@@ -298,8 +298,8 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  flex: 1;                         /* each column stretches equally */
-  min-width: 0;                    /* allow shrinking below content size */
+  flex: 1;
+  min-width: 0;
 }
 
 .fc-label {
@@ -309,7 +309,6 @@ body {
   white-space: nowrap;
 }
 
-/* Rain row always reserves height so columns stay vertically aligned */
 .fc-rain-row {
   display: flex;
   align-items: center;
@@ -341,18 +340,18 @@ body {
   -webkit-backdrop-filter: var(--panel-blur);
   border-radius: var(--radius-sm);
   aspect-ratio: 1 / 1;
-  padding: clamp(12px, 2vw, 24px);
+  padding: clamp(10px, 2vw, 24px);
   display: flex;
   flex-direction: column;
-  justify-content: center;         /* vertical centre */
-  align-items: center;             /* horizontal centre */
+  justify-content: center;
+  align-items: center;
   text-align: center;
   gap: 4cqw;
   container-type: size;
 }
 
 .stat-label {
-  font-size: 10cqw;                /* scales with card width */
+  font-size: 10cqw;
   color: var(--text-dim);
   font-weight: 400;
   text-transform: uppercase;
@@ -384,3 +383,438 @@ body {
   width: 18cqw;
   height: 18cqw;
 }
+
+/* ── City search bar (shared) ── */
+.ww-search {
+  padding: 0 16px 18px;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ww-search-input {
+  flex: 1;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+  font-family: var(--font-main);
+  font-size: 13px;
+  outline: none;
+  min-width: 0;
+}
+
+.ww-search-input::placeholder {
+  color: rgba(255,255,255,0.55);
+}
+
+.ww-search-btn {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.3);
+  color: #fff;
+  font-family: var(--font-main);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ww-search-btn:hover {
+  background: rgba(255,255,255,0.4);
+}
+
+/* ════════════════════════════════ TOP BAR ═══════════════════════════════════ */
+
+.ww-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 6px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+/* ── Hamburger ── */
+.ww-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.22);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.ww-hamburger:hover { background: rgba(255,255,255,0.32); }
+.ww-hamburger span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+/* ════════════════════════════════ CITY SEARCH ═══════════════════════════════ */
+
+.cs-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.cs-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.22);
+  border-radius: 12px;
+  padding: 0 10px;
+  height: 36px;
+}
+
+.cs-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-main);
+  font-size: 13px;
+  outline: none;
+  min-width: 0;
+}
+.cs-input::placeholder { color: rgba(255,255,255,0.6); }
+
+/* Star */
+.cs-star {
+  font-size: 18px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(255,255,255,0.55);
+  padding: 0;
+  transition: color 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+.cs-star:hover          { color: #ffe066; transform: scale(1.15); }
+.cs-star--active        { color: #ffe066; }
+.cs-star:disabled       { opacity: 0.4; cursor: default; }
+
+/* Spinner */
+.cs-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: cs-spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes cs-spin { to { transform: rotate(360deg); } }
+
+/* Dropdown */
+.cs-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: rgba(30, 160, 145, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 14px;
+  overflow: hidden;
+  list-style: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  z-index: 100;
+}
+
+.cs-suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.cs-suggestion:hover { background: rgba(255,255,255,0.12); }
+
+.cs-sug-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cs-sug-meta {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ════════════════════════════════ SIDE PANEL ════════════════════════════════ */
+
+/* Backdrop */
+.sp-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.sp-backdrop--visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Panel */
+.sp-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(320px, 88vw);
+  background: linear-gradient(160deg, #2ec8bc 0%, #1fa898 100%);
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 32px rgba(0,0,0,0.18);
+}
+.sp-panel--open { transform: translateX(0); }
+
+/* Panel header */
+.sp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+.sp-logo {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.sp-close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.sp-close:hover { background: rgba(255,255,255,0.25); }
+
+/* Panel body */
+.sp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+}
+
+/* Form */
+.sp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sp-form-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.sp-field {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-family: var(--font-main);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.sp-field::placeholder { color: rgba(255,255,255,0.5); }
+.sp-field:focus {
+  border-color: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.22);
+}
+
+.sp-error {
+  font-size: 12px;
+  color: #ffe0e0;
+  background: rgba(255,80,80,0.18);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.sp-hint {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.5;
+}
+
+/* Buttons */
+.sp-btn-primary {
+  width: 100%;
+  padding: 11px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  color: #1a9e90;
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.sp-btn-primary:hover:not(:disabled) { background: #fff; transform: translateY(-1px); }
+.sp-btn-primary:disabled { opacity: 0.55; cursor: default; }
+
+.sp-btn-ghost {
+  width: 100%;
+  padding: 9px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  font-family: var(--font-main);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.sp-btn-ghost:hover { border-color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); }
+
+.sp-btn-danger-ghost {
+  width: 100%;
+  padding: 9px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(255,120,120,0.4);
+  background: transparent;
+  color: rgba(255,180,180,0.9);
+  font-family: var(--font-main);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  margin-top: 4px;
+}
+.sp-btn-danger-ghost:hover { border-color: rgba(255,100,100,0.7); background: rgba(255,80,80,0.1); }
+
+.sp-btn-danger {
+  flex: 1;
+  padding: 9px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(220,60,60,0.75);
+  color: #fff;
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sp-btn-danger:hover { background: rgba(220,60,60,0.9); }
+
+/* Confirm dialog */
+.sp-confirm { display: flex; flex-direction: column; gap: 8px; }
+.sp-confirm-text { font-size: 12px; color: rgba(255,200,200,0.9); }
+.sp-confirm-row  { display: flex; gap: 8px; }
+
+/* Logged-in panel */
+.sp-logged { display: flex; flex-direction: column; gap: 16px; }
+
+.sp-fav-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+
+.sp-fav-item {
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.12);
+  transition: background 0.12s;
+}
+.sp-fav-item:hover { background: rgba(255,255,255,0.2); }
+
+.sp-fav-name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+.sp-fav-icon { font-size: 16px; opacity: 0.7; }
+
+.sp-fav-remove {
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.4);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+.sp-fav-remove:hover { color: rgba(255,150,150,0.9); }
+
+.sp-account-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ── Forgot / reset password extras ── */
+.sp-btn-link {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.65);
+  font-family: var(--font-main);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: center;
+  width: 100%;
+  transition: color 0.15s;
+}
+.sp-btn-link:hover { color: rgba(255,255,255,0.95); }
+
+.sp-hint--mb { margin-bottom: 4px; }
