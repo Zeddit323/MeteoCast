@@ -353,7 +353,7 @@ export default function SidePanel({ open, onClose, onCitySelect, forceOpen }) {
       />
       <div className={`sp-panel ${open ? "sp-panel--open" : ""}`}>
         <div className="sp-header">
-          <span className="sp-logo">Meteocast</span>
+          <span className="sp-logo">MeteoCast</span>
           <button className="sp-close" onClick={onClose} aria-label="Zamknij">✕</button>
         </div>
         <div className="sp-body">
