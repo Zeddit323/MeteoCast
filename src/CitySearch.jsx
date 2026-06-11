@@ -12,26 +12,50 @@ const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowe
 async function fetchSuggestions(query) {
   if (!query || query.length < 2) return [];
 
+  const q = normalize(query);
+
   try {
-    const res = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=pl`
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    if (!data.results) return [];
+    // Fetch with language=pl (returns Polish city names, e.g. "Londyn" for London).
+    // Also fetch with language=en simultaneously so foreign-language queries
+    // (e.g. typing "London") still find the right city even if the Polish name
+    // doesn't match the query string.
+    const [respl, resen] = await Promise.all([
+      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=pl`),
+      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=en`),
+    ]);
 
-    const q = normalize(query);
+    const [datapl, dataen] = await Promise.all([
+      respl.ok ? respl.json() : { results: [] },
+      resen.ok ? resen.json() : { results: [] },
+    ]);
 
-    // Only keep results whose name actually matches the query (diacritic-insensitive).
-    // Open-Meteo sometimes returns unrelated results via alternate name matching.
-    const matched = data.results.filter(item =>
-      normalize(item.name).startsWith(q)
-    );
+    const resultspl = datapl.results ?? [];
+    const resultsen = dataen.results ?? [];
 
-    // Deduplicate by normalized name + country only (ignore admin1/voivodeship).
-    // Same city appears multiple times under different admin regions — keep first (most relevant).
+    // Build a map of id → Polish-name result from the pl fetch
+    const plById = new Map(resultspl.map(r => [r.id, r]));
+
+    // Merge: for each EN result, prefer the PL version (for the Polish city name)
+    // but only include it if the EN name matches the query (so "London" finds "Londyn")
+    const merged = [];
+    for (const en of resultsen) {
+      if (!normalize(en.name).startsWith(q)) continue;
+      const pl = plById.get(en.id);
+      merged.push(pl ?? en); // use Polish name if available
+    }
+
+    // Also add PL-only results whose Polish name directly matches the query
+    // (covers cities the user typed in Polish, e.g. "Kraków")
+    const enIds = new Set(resultsen.map(r => r.id));
+    for (const pl of resultspl) {
+      if (enIds.has(pl.id)) continue; // already handled above
+      if (!normalize(pl.name).startsWith(q)) continue;
+      merged.push(pl);
+    }
+
+    // Deduplicate by normalized name + country, keep first (most relevant)
     const seen = new Set();
-    return matched
+    return merged
       .filter(item => {
         const key = `${normalize(item.name)}|${item.country_code?.toLowerCase()}`;
         if (seen.has(key)) return false;
@@ -39,7 +63,7 @@ async function fetchSuggestions(query) {
         return true;
       })
       .map(item => ({
-        name:    item.name,           // already in Polish when language=pl
+        name:    item.name,
         lat:     item.latitude,
         lon:     item.longitude,
         country: item.country_code?.toUpperCase() ?? "",
