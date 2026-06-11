@@ -13,27 +13,36 @@ const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowe
 
 async function fetchSuggestions(query) {
   if (!query || query.length < 2) return [];
-  const res = await fetch(
-    `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(query)}&limit=10&appid=${OWM_KEY}`
-  );
-  if (!res.ok) return [];
-  const data = await res.json();
+  
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`,
+      {
+        headers: {
+          // OpenStreetMap requires a valid User-Agent identifying your app
+          "User-Agent": "YourAppName/1.0 (your-email@example.com)" 
+        }
+      }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
 
-  const q = normalize(query.trim());
-
-  // Filter: only results whose name matches the query (diacritic-insensitive)
-  const matched = data.filter(item => normalize(item.name).startsWith(q));
-
-  // Deduplicate by normalized name + country, keeping first (highest-relevance) result.
-  // OWM lists the same city under multiple voivodeships — we want only one entry.
-  const seen = new Set();
-  return matched.filter(item => {
-    const key = `${normalize(item.name)}|${item.country}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).slice(0, 5);
+    // Transform Nominatim's data structure to fit your component
+    return data.map(item => ({
+      name: item.address.city || item.address.town || item.address.village || item.display_name.split(',')[0],
+      lat: parseFloat(item.lat),
+      lon: parseFloat(item.lon),
+      country: item.address.country_code?.toUpperCase() || "",
+      state: item.address.state || "",
+      // Keep local names logic intact if needed, Nominatim returns a localized display_name
+      local_names: { pl: item.address.city || item.name } 
+    }));
+  } catch (error) {
+    console.error("Geocoding error:", error);
+    return [];
+  }
 }
+
 
 // Display name shown in the dropdown — prefer Polish local name
 function displayName(item) {
