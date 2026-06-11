@@ -24,10 +24,19 @@ function Overlay({ children }) {
 }
 
 export default function WeatherWidget({ icons = {} }) {
+  const STORAGE_KEY = "meteocast_last_city";
+  function loadSaved() {
+      try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) return JSON.parse(raw); } catch (_) {}
+          return null;
+      }
+  function saveLast(name, lat, lon) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ name, lat, lon })); } catch (_) {}
+  }
   // Always store coordinates — never rely on geocoding a name.
   // Default is Katowice city centre; updated whenever a city is selected.
-  const [city, setCity]     = useState("Katowice");
-  const [coords, setCoords] = useState({ lat: 50.2598, lon: 19.0216 });
+  const saved = loadSaved();
+  const [city, setCity]     = useState(saved?.name ?? "Katowice");
+  const [coords, setCoords] = useState({ lat: saved?.lat ?? 50.2598, lon: saved?.lon ?? 19.0216 });
   const [panelOpen, setPanelOpen] = useState(false);
 
   const { data, loading, error } = useWeather({ lat: coords.lat, lon: coords.lon, city });
@@ -35,9 +44,11 @@ export default function WeatherWidget({ icons = {} }) {
   const Icon = buildIconMap(icons);
 
   function handleCitySelect({ name, lat, lon }) {
-    setCity(name);
-    // Coordinates from favorites are stored as strings in Postgres — coerce to number
-    setCoords({ lat: parseFloat(lat), lon: parseFloat(lon) });
+      const flat = parseFloat(lat);
+      const flon = parseFloat(lon);
+      setCity(name);
+      setCoords({ lat: flat, lon: flon });
+      saveLast(name, flat, flon);
   }
 
   // Search bar rendered above both layouts
