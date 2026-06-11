@@ -141,11 +141,12 @@ export function useWeather({ lat, lon, city }) {
 async function fetchFallback(lat, lon, city, apiKey) {
   const base = "https://api.openweathermap.org/data/2.5";
 
-  // Fetch current weather, 5-day forecast, and UV index in parallel
+  // Fetch current weather, 5-day forecast, and Open-Meteo UV Index in parallel
+  // Open-Meteo is 100% free, requires no key, and provides accurate real-time UV
   const [curRes, foreRes, uvRes] = await Promise.all([
     fetch(`${base}/weather?lat=${lat}&lon=${lon}&units=metric&lang=pl&appid=${apiKey}`),
     fetch(`${base}/forecast?lat=${lat}&lon=${lon}&units=metric&lang=pl&appid=${apiKey}`),
-    fetch(`${base}/uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`),
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=uv_index`)
   ]);
 
   if (!curRes.ok)  throw new Error(`Weather error: ${curRes.status}`);
@@ -154,13 +155,13 @@ async function fetchFallback(lat, lon, city, apiKey) {
   const cur  = await curRes.json();
   const fore = await foreRes.json();
 
-  // UV is a bonus — don't crash if it fails (endpoint may be deprecated)
+  // Safely extract the current UV index from the Open-Meteo response
   let uvValue = 0;
   if (uvRes.ok) {
     try {
       const uvJson = await uvRes.json();
-      uvValue = uvJson.value ?? 0;
-    } catch (_) { /* ignore */ }
+      uvValue = uvJson.current?.uv_index ?? 0;
+    } catch (_) { /* ignore and fallback to 0 if API goes down */ }
   }
 
   // ── Build daily summary from 3-hourly slots (prefer noon) ─────────────────
@@ -170,9 +171,12 @@ async function fetchFallback(lat, lon, city, apiKey) {
   for (const item of fore.list) {
     const d    = new Date(item.dt * 1000);
     const key  = d.toISOString().slice(0, 10);
-    const hour = d.getUTCHours();
+    
+    // NOTE: Changed to .getHours() to calculate the slot closest to local 
+    // noon rather than UTC noon, protecting accuracy across different time zones.
+    const hour = d.getHours();
 
-    if (!byDay[key] || Math.abs(hour - 12) < Math.abs(new Date(byDay[key].dt * 1000).getUTCHours() - 12)) {
+    if (!byDay[key] || Math.abs(hour - 12) < Math.abs(new Date(byDay[key].dt * 1000).getHours() - 12)) {
       byDay[key] = item;
     }
     if (!hiLo[key]) hiLo[key] = { hi: -999, lo: 999 };
@@ -210,7 +214,7 @@ async function fetchFallback(lat, lon, city, apiKey) {
     condition:      cur.weather[0]?.description ?? "—",
     tempRange:      `Od ${Math.round(todayHiLo.lo)}° do ${Math.round(todayHiLo.hi)}°`,
     humidity:       `${cur.main.humidity}%`,
-    uv:             Math.round(uvValue),
+    uv:             Math.round(uvValue), // Now maps the real fetched value
     uvLabel:        uvIndexLabel(uvValue),
     feelsLike:      Math.round(cur.main.feels_like),
     pressure:       cur.main.pressure,
