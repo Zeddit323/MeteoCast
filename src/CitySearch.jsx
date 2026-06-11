@@ -7,38 +7,47 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "./AuthContext";
 
+const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+
 async function fetchSuggestions(query) {
   if (!query || query.length < 2) return [];
 
-  // language=pl forces the Open-Meteo database to prioritize Polish localized names
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=pl`;
-
   try {
-    const res = await fetch(url);
+    const res = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=pl`
+    );
     if (!res.ok) return [];
     const data = await res.json();
-
     if (!data.results) return [];
 
-    // Deduplicate on backend attributes: lowercase name, country code, and state/region
+    const q = normalize(query);
+
+    // Only keep results whose name actually matches the query (diacritic-insensitive).
+    // Open-Meteo sometimes returns unrelated results via alternate name matching.
+    const matched = data.results.filter(item =>
+      normalize(item.name).startsWith(q)
+    );
+
+    // Deduplicate by normalized name + country only (ignore admin1/voivodeship).
+    // Same city appears multiple times under different admin regions — keep first (most relevant).
     const seen = new Set();
-    return data.results
+    return matched
       .filter(item => {
-        const key = `${item.name.toLowerCase()}|${item.country_code?.toLowerCase()}|${item.admin1?.toLowerCase()}`;
+        const key = `${normalize(item.name)}|${item.country_code?.toLowerCase()}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
       })
       .map(item => ({
-        name: item.name,
-        lat: item.latitude,
-        lon: item.longitude,
-        country: item.country_code?.toUpperCase() || "",
-        state: item.admin1 || "",
+        name:    item.name,           // already in Polish when language=pl
+        lat:     item.latitude,
+        lon:     item.longitude,
+        country: item.country_code?.toUpperCase() ?? "",
+        state:   item.admin1 ?? "",
       }))
-      .slice(0, 5); // Take the top 5 highly relevant entries
-  } catch (error) {
-    console.error("Geocoding error:", error);
+      .slice(0, 5);
+  } catch (err) {
+    console.error("Geocoding error:", err);
     return [];
   }
 }
@@ -54,7 +63,6 @@ export default function CitySearch({ onCitySelect, currentCity, currentLat, curr
   const debounceRef                   = useRef(null);
   const wrapperRef                    = useRef(null);
 
-  // Debounced suggestion fetch
   useEffect(() => {
     clearTimeout(debounceRef.current);
     if (!input.trim()) { setSuggestions([]); setOpen(false); return; }
@@ -68,7 +76,6 @@ export default function CitySearch({ onCitySelect, currentCity, currentLat, curr
     return () => clearTimeout(debounceRef.current);
   }, [input]);
 
-  // Close on outside click
   useEffect(() => {
     function handleClick(e) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
@@ -132,7 +139,7 @@ export default function CitySearch({ onCitySelect, currentCity, currentLat, curr
       {open && (
         <ul className="cs-dropdown">
           {suggestions.map((item, i) => {
-            // Append context labels if multiple suggestions have the exact same string name
+            // Show state only when multiple results share the same name
             const hasDupe = suggestions.filter(s => s.name === item.name).length > 1;
             return (
               <li key={i}>
